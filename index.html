@@ -10,9 +10,11 @@
 </head>
 <body>
   <div id="books">
+
+    <iframe id="uploadForm" src="upload.html"></iframe>
+
     <form id="addBook" action="#">
       <div>
-        <label for="coverImage">CoverImage: </label><input id="coverImage" type="file" />
         <label for="title">Title: </label><input id="title" type="text" />
         <label for="author">Author: </label><input id="author" type="text" />
         <label for="releaseDate">Release date: </label><input id="releaseDate" type="text" />
@@ -38,6 +40,7 @@
   <script src="lib/jquery-ui.min.js"></script>
   <script src="lib/underscore-min.js"></script>
   <script src="lib/backbone-min.js"></script>
+  <script src="lib/jquery.ajaxfileupload.js"></script>
 
   <script src="public/js/app.js"></script>
 </body>

@@ -1,26 +1,19 @@
 // Module dependencies.
 var os = require('os');
-var application_root = __dirname + '/',
-    express = require( 'express' ), //Web framework
+var express = require( 'express' ), //Web framework
     bodyParser = require('body-parser'), //Parser for reading request body
-    path = require( 'path' ), //Utilities for dealing with file paths
-    mongoose = require( 'mongoose' ); //MongoDB integration
+    //path = require( 'path' ), //Utilities for dealing with file paths
+    mongoose = require( 'mongoose' ), //MongoDB integration
+    multer = require('multer'),
+    done = false;
 
 //Create server
 var app = express();
-
-//Where to serve static content
-//app.use( express.static( path.join( application_root, 'public') ) );
 app.use('/', express.static(__dirname + "/"));
 app.use(bodyParser.json());
 
 //Start server
 var port = 4711;
-
-// Routes
-app.get( '/api', function( request, response ) {
-  response.send( 'Library API is running' );
-});
 
 //Connect to database
 mongoose.connect( 'mongodb://localhost/library_database' );
@@ -32,34 +25,36 @@ var Keywords = new mongoose.Schema({
 
 //Schemas
 var Book = new mongoose.Schema({
+  coverImage: String,
   title: String,
   author: String,
   releaseDate: Date,
-  keywords: [ Keywords ]                       // NEW
+  keywords: [ Keywords ]
 });
-
 
 
 //Models
 var BookModel = mongoose.model( 'Book', Book );
 
+
+// Routes
+app.get( '/api', function( request, response ) {
+  response.send( 'Library API is running' );
+});
+
+
 // Configure server
 app.configure( function() {
-  //parses request body and populates request.body
-  //app.use( express.bodyParser() );
-
   //checks request.body for HTTP method overrides
   app.use( express.methodOverride() );
 
   //perform route lookup based on url and HTTP method
   app.use( app.router );
 
-  //Where to serve static content
-  app.use('/', express.static(__dirname + "/"));
-
   //Show all errors in development
   app.use( express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
+
 
 //Get a list of all books
 app.get( '/api/books', function( request, response ) {
@@ -72,6 +67,7 @@ app.get( '/api/books', function( request, response ) {
   });
 });
 
+
 //Get a single book by id
 app.get( '/api/books/:id', function( request, response ) {
   return BookModel.findById( request.params.id, function( err, book ) {
@@ -83,9 +79,11 @@ app.get( '/api/books/:id', function( request, response ) {
   });
 });
 
+
 //Insert a new book
 app.post( '/api/books', function( request, response ) {
   var book = new BookModel({
+    coverImage : uploadedPath,
     title: request.body.title,
     author: request.body.author,
     releaseDate: request.body.releaseDate,
@@ -101,6 +99,7 @@ app.post( '/api/books', function( request, response ) {
     }
   });
 });
+
 
 //Update a book
 app.put( '/api/books/:id', function( request, response ) {
@@ -122,6 +121,7 @@ app.put( '/api/books/:id', function( request, response ) {
   });
 });
 
+
 //Delete a book
 app.delete( '/api/books/:id', function( request, response ) {
   console.log( 'Deleting book with id: ' + request.params.id );
@@ -137,6 +137,45 @@ app.delete( '/api/books/:id', function( request, response ) {
   });
 });
 
+
 app.listen( port, function() {
   console.log(os.hostname(), 'Express server listening on port %d in %s mode', port, app.settings.env );
+});
+
+
+var upload = express();
+var uploadedPath = '';
+
+//Configure multer
+upload.use(multer({
+  dest: "./uploads/",
+  rename: function (fieldname, filename) {
+    return Date.now();
+  },
+  onFileUploadStart: function (file) {
+    console.log(file.originalname + ' is starting ...')
+  },
+  onFileUploadComplete: function (file) {
+    console.log(file.fieldname + ' uploaded to  ' + file.path);
+    uploadedPath = file.path;
+    done = true;
+  }
+}));
+
+
+upload.post('/api/photo',function(request,response){
+  if(done == true){
+    console.log(request.files);
+    response.json(uploadedPath);
+  }
+});
+
+
+upload.get('/api/photo',function(request, response){
+  return response.send(uploadedPath);
+});
+
+/*Run the server.*/
+upload.listen(3000,function(){
+  console.log("Working on port 3000");
 });

@@ -14,6 +14,8 @@ body {
 .bookContainer img {
   float: left;
   margin: 10px;
+  width: 80px;
+  height: 106px;
 }
 
 .bookContainer ul {
@@ -26,6 +28,11 @@ body {
   margin: 10px;
 }
 
+#uploadForm {
+  width: 500px;
+  height: 150px;
+  border: 0;
+}
 #addBook label {
   width: 100px;
   margin-right: 10px;
